@@ -42,7 +42,7 @@ programmer
 >>> print parser.comments
 ['foo', 'bar', 'spam']
 
-Argfarce will also work with subparsers:
+Argfarce will also work with subparsers and subparser level calls:
 
 >>> class SandwichParser(ArgumentParser):
 ...     class Meta:
@@ -52,16 +52,28 @@ Argfarce will also work with subparsers:
 ...     class MakeSandwichParser(ArgumentParser):
 ...         class Meta:
 ...             subparser_argument = 'make'
+...             call = 'func'
 ...             
 ...         cheese = Argument('-c', '--use-cheese', choices=('cheddar', 'provolone', 'swiss'), help="Cheese to use on your sandwich")
 ...         protein = Argument('-p', '--use-protein', choices=('tempeh', 'chicken', 'beef'), help="Protein for your meal")
 ...         extras = Argument('-x', '--extras', nargs="+", choices=('lettuce', 'tomato', 'olives', 'peppers', 'pickles', 'oil'), help="Fixings you want")
 ...     
+...         def func(self, args):
+...             return args.cheese.upper()
+...
+...
 ...     class EatSandwichParser(ArgumentParser):
 ...         class Meta:
 ...             subparser_argument = 'eat'
+...             call = 'func'
 ...             
 ...         speed = Argument('-s', choices=('fast', 'slow'), help="How fast to eat the sandwich")
+...
+...         def func(self, args):
+...             if args.speed == 'fast':
+...                 return 'speed of light!'
+...             else:
+...                 return 'slow motion'
 ... 
 >>> p = SandwichParser()
 >>> p.parse_args('make -c swiss -p beef -x lettuce tomato olives'.split())
@@ -71,10 +83,13 @@ swiss
 beef
 >>> print p.extras
 ['lettuce', 'tomato', 'olives']
->>> 
+>>> print p.call(p)
+SWISS
 >>> p.parse_args('eat -s fast'.split())
 >>> print p.speed
 fast
+>>> print p.call(p)
+speed of light!
 """
 
 import argparse
@@ -119,11 +134,15 @@ class ArgumentParser(object):
             parser_args = self._getmeta()
             self._parser = argparse.ArgumentParser(**parser_args)
         
-        if hasattr(self, 'Meta') and hasattr(self.Meta, 'subparser_help'):
-            self._subparser_help = getattr(self.Meta, 'subparser_help')
-        else:
-            self._subparser_help = None
-        
+        if hasattr(self, 'Meta'):
+            if hasattr(self.Meta, 'subparser_help'):
+                self._subparser_help = getattr(self.Meta, 'subparser_help')
+            else:
+                self._subparser_help = None
+            if hasattr(self.Meta, 'call'):
+                call = getattr(self, self.Meta.call)
+                parser.set_defaults(call=call)
+
         self._handleargs(self._parser)
         
     def _getmeta(self):
