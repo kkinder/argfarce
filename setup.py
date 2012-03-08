@@ -5,6 +5,7 @@ setup(name='argfarce',
       author = "Ken Kinder",
       author_email = "kkinder@gmail.com",
       url = "http://kkinder.com/argfarce",
+      download_url = "https://bitbucket.org/kkinder/argfarce/downloads/argfarce-1.1.tar.gz",
       keywords = ["argument parsing", "argparse", "optparse"],
       classifiers = [
         "Programming Language :: Python",
@@ -15,6 +16,7 @@ setup(name='argfarce',
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
+        description = "Declarative wrapper for argparse",
       long_description = """\
 Argfarce
 --------
