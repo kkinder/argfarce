@@ -1,7 +1,9 @@
 """
 Argfarce library.
 
-Copyright (C) 2008 Ken Kinder
+Copyright (C) 2008-2012 by
+    Ken Kinder <http://kkinder.com>
+    Unai Zalakain <http://www.gisa-elkartea.org/hasiera>
 
 ---------------------------------------------------------------------------------
 Permission is hereby granted, free of charge, to any person obtaining a copy
