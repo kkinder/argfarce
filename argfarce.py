@@ -31,12 +31,15 @@ Argfarce makes it easy to declare argparse structures. Consider this example:
 ...     class Meta:
 ...         prog = 'person.py'
 ...     
-...     name = Argument('-n', help="Cheese to use on your sandwich", required=False)
-...     profession = Argument('-p', '--profession', choices=('developer', 'programmer', 'software engineer'), help="These are all pretty much the same", required=False)
+...     profession = Argument('-p', '--profession', choices=('developer', 'programmer', 'software engineer'), help="These are all pretty much the same")
+...     action = Argument('-a', '--action')
+...     name = Argument('full_name')
 ...     comments = Argument(nargs='*')
 ... 
 >>> parser = PersonalInfoParser()
->>> parser.parse_args('-p programmer -n Ken foo bar spam'.split())
+>>> parser.parse_args('-p programmer -a salute Ken foo bar spam'.split())
+>>> print parser.action
+salute
 >>> print parser.name
 Ken
 >>> print parser.profession
@@ -136,6 +139,7 @@ class ArgumentParser(object):
 
         self._arguments = OrderedDict()
         self._children = OrderedDict()
+        self._namespace_translations = {}
         self._subparsers = None
         
         if parser:
@@ -185,7 +189,15 @@ class ArgumentParser(object):
 
     def _handleargs(self, parser):
         for k, v in self._arguments.items():
-            v.kwargs['dest'] = k
+
+            # If positional argument
+            if len(v.args) == 1 and v.args[0][0] not in parser.prefix_chars:
+                # If argument name and class attribute name differs
+                if k != v.args[0]:
+                    # Add it for future namespace translation
+                    self._namespace_translations[v.args[0]] = k
+            else:
+                v.kwargs['dest'] = k
             parser.add_argument(*v.args, **v.kwargs)
                 
         if self._children:
@@ -207,7 +219,9 @@ class ArgumentParser(object):
     
     def _namespacify(self, namespace):
         for k, v in namespace.__dict__.items():
-            setattr(self, k, getattr(namespace, k))
+            if k in self._namespace_translations:
+                k = self._namespace_translations[k]
+            setattr(self, k, v)
     
     ###################################################
     ## Wrapper functions pointing up to self._parser ##
