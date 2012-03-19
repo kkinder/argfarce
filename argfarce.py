@@ -209,12 +209,16 @@ class ArgumentParser(object):
                 
             for k, v in self._children.items():
                 subparser_args = []
-                if hasattr(v, 'Meta') and hasattr(v.Meta, 'subparser_argument'):
-                    subparser_args.append(v.Meta.subparser_argument)
+                subparser_kwargs = {}
+                if hasattr(v, 'Meta'):
+                    if hasattr(v.Meta, 'subparser_argument'):
+                        subparser_args.append(v.Meta.subparser_argument)
+                    for attr in ('help',) + _argumentParserOptions:
+                        if hasattr(v.Meta, attr):
+                            subparser_kwargs[attr] = getattr(v.Meta, attr)
                 else:
                     subparser_args.append(v.__name__.lower())
-                
-                subparser = self._subparsers.add_parser(*subparser_args)
+                subparser = self._subparsers.add_parser(*subparser_args, **subparser_kwargs)
                 instance = v(parser=subparser)
     
     def _namespacify(self, namespace):
