@@ -155,7 +155,7 @@ class ArgumentParser(object):
                 self._subparser_help = None
             if hasattr(self.Meta, 'call'):
                 call = getattr(self, self.Meta.call)
-                parser.set_defaults(call=call)
+                self._parser.set_defaults(call=call)
 
         self._orderargs()
         self._handleargs(self._parser)
